@@ -15,17 +15,23 @@ def main():
     # create folder if it doesn't exist
     if not os.path.exists(folder):
         os.makedirs(folder)
-    download_servidores(2022, 12)
-    bucket_name = 'servidores-ufob'
-    files = sorted(os.listdir(folder))
 
-    for file in files:
-        if file.endswith('_Cadastro.csv'):
-            filter_csv(os.path.join(folder, file))
-            filtered_file = file.replace('.csv', '_ufob.csv')
-            upload_to_s3(folder, filtered_file, bucket_name)
-            os.remove(os.path.join(folder, file))
-            os.remove(os.path.join(folder, filtered_file))
+    bucket_name = 'servidores-ufob'
+
+    # download the file
+    for ano in range(2013, 2023):
+        for mes in range(1, 13):
+            file = download_servidores(2022, 12)
+            if file.endswith('_Cadastro.csv'):
+                # filter the file
+                filter_csv(os.path.join(folder, file))
+                filtered_file = file.replace('.csv', '_ufob.csv')
+                # upload filtered file to S3
+                upload_to_s3(folder, filtered_file, bucket_name)
+                # delete original file
+                os.remove(os.path.join(folder, file))
+                # delete filtered file
+                os.remove(os.path.join(folder, filtered_file))
 
     s3 = boto3.resource('s3')
     bucket = s3.Bucket(bucket_name)
