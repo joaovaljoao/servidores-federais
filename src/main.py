@@ -9,12 +9,13 @@ from rds_utils import create_table_in_rds
 from s3 import upload_to_s3, read_s3_file
 
 def main():
-    download_servidores(2022, 12)
+    
 
     folder = 'output/'
     # create folder if it doesn't exist
     if not os.path.exists(folder):
         os.makedirs(folder)
+    download_servidores(2022, 12)
     bucket_name = 'servidores-ufob'
     files = sorted(os.listdir(folder))
 
