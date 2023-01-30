@@ -1,38 +1,54 @@
 import zipfile
 import requests
 import os
+import logging
 
-def download_servidores(ano, mes, tipo='Servidores_SIAPE'):
-    url = 'https://portaldatransparencia.gov.br/download-de-dados/servidores/{ano}{mes:02d}_{tipo}'.format(ano=ano, mes=mes, tipo=tipo)
-    filename = f'{ano}{mes:02d}_{tipo}.zip'
-    folder = 'output/'
+def create_output_folder(folder_path):
+    if not os.path.exists(folder_path):
+        os.makedirs(folder_path)
+        print(f"Pasta criada: {folder_path}")
+
+def download_file(url, filename):
     try:
         r = requests.get(url)
         r.raise_for_status()
-        with open(folder + filename, 'wb') as f:
+        with open(filename, 'wb') as f:
             f.write(r.content)
-        print("File downloaded successfully!")
-
-        # extract files from zip file
-        if zipfile.is_zipfile(folder + filename):
-            try:
-                with zipfile.ZipFile(folder + filename, 'r') as zip_ref:
-                    zip_ref.extractall(folder)
-                print("File extracted successfully!")
-            except zipfile.BadZipFile as e:
-                print("Error: Invalid zip file")
-        else:
-            print("Error: Not a valid zip file")
-
+        logging.info("Download baixado com sucesso!")
+        return True
     except requests.exceptions.HTTPError as errh:
-        print ("HTTP Error:",errh)
+        logging.error("Erro HTTP: %s", errh)
+        return False
     except requests.exceptions.ConnectionError as errc:
-        print ("Error Connecting:",errc)
+        logging.error("Erro de conexão: %s", errc)
+        return False
     except requests.exceptions.Timeout as errt:
-        print ("Timeout Error:",errt)
+        logging.error("Erro de timeout: %s", errt)
+        return False
     except requests.exceptions.RequestException as err:
-        print ("Something went wrong:",err)
-    # remove files that are not needed
+        logging.error("Algo deu errado: %s", err)
+        return False
+
+def extract_zip_file(zip_file, folder):
+    try:
+        with zipfile.ZipFile(zip_file, 'r') as zip_ref:
+            zip_ref.extractall(folder)
+        logging.info("Arquivo extraído com sucesso!")
+        return True
+    except zipfile.BadZipFile as e:
+        logging.error("Erro: Arquivo zip corrompido ou inválido!")
+        return False
+
+def remove_files(folder, extension):
     for file in os.listdir(folder):
-        if not file.endswith('_Cadastro.csv'):
+        if not file.endswith(extension):
             os.remove(os.path.join(folder, file))
+
+def download_servidores(ano, mes, folder, tipo='Servidores_SIAPE', extract=True):
+    url = 'https://portaldatransparencia.gov.br/download-de-dados/servidores/{ano}{mes:02d}_{tipo}'.format(ano=ano, mes=mes, tipo=tipo)
+    filename = f'{ano}{mes:02d}_{tipo}.zip'
+    create_output_folder(folder)
+    if download_file(url, folder + filename):
+        if extract:
+            extract_zip_file(folder + filename, folder)
+            remove_files(folder, '_Cadastro.csv')
