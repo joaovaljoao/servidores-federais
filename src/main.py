@@ -20,8 +20,9 @@ def main():
 
     # download the file
     for ano in range(2013, 2023):
-        for mes in range(1, 13):
-            file = download_servidores(2022, 12)
+        for mes in range(11, 13):
+            download_servidores(ano, mes)
+            file = f'{folder}{ano}{mes:02d}_Cadastro.csv'
             if file.endswith('_Cadastro.csv'):
                 # filter the file
                 filter_csv(os.path.join(folder, file))
