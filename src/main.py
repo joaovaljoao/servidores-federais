@@ -8,7 +8,7 @@ def main():
     folder = 'output/'
 
     for ano in range(2022, 2023):
-        for mes in range(12, 13):
+        for mes in range(11, 13):
             # download the file
             download_servidores(ano, mes, folder)
             file = f'{ano}{mes:02d}_Cadastro.csv'
