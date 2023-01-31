@@ -15,8 +15,8 @@ class Servidor(Base):
     nome = Column(String)
     cpf = Column(String)
     matricula = Column(String)
-    cnpq_id = Column(Integer)
-    cnpq_web_id = Column(Integer)
+    cnpq_id = Column(String)
+    cnpq_web_id = Column(String)
 
 def create_table_in_rds(df):
     host = os.getenv("RDS_HOST")

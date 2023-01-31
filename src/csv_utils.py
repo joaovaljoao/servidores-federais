@@ -1,29 +1,33 @@
 import os
 import pandas as pd
+import gc
 
-import subprocess
+def filter_csv(file):
+    df = pd.read_csv(file, encoding='latin-1', low_memory=False, sep=';')
+    df = df[(df['COD_ORG_LOTACAO'] == 26447) | (df['COD_ORG_EXERCICIO'] == 26447) | (df['COD_UORG_LOTACAO'] == 26232000000732)]
+    new_file = file.replace('.csv', '_ufob.csv')
+    df.to_csv(new_file, index=False)
+    os.remove(file)
+    return  new_file.split('/')[-1]
 
-def filter_csv(filename):
-    new_file = filename.replace(".csv", "_ufob.csv")
-    
-    header_command = f"head -1 {filename} > {new_file}"
-    filter_command = f"grep -a -E '26447|26232000000732' {filename} >> {new_file}"
-    
-    subprocess.run(header_command, shell=True, check=True)
-    subprocess.run(filter_command, shell=True, check=True)
-
-def filter_file(folder, file):
-    filter_csv(os.path.join(folder, file))
-    print(f'File {file} filtered successfully!')
-    filtered_file = file.replace('.csv', '_ufob.csv')
-    os.remove(os.path.join(folder, file))
-    print(f'File {file} deleted successfully!')
-    return filtered_file
-
-def read_and_clean_data(dataframe):
-    df = dataframe
+def read_and_clean_data(filepath):
+    df = pd.read_csv(filepath)
     df = df[['Id_SERVIDOR_PORTAL', 'NOME', 'CPF', 'MATRICULA']]
     df['CNPQ_ID'] = None
     df['CNPQ_WEB_ID'] = None
     df.drop_duplicates(subset=['Id_SERVIDOR_PORTAL'], inplace=True)
-    return df
+    df.to_csv(filepath, index=False)
+    return
+
+def concatenate_csv_files(folder_path, output_file):
+    csv_files = [f for f in os.listdir(folder_path) if f.endswith('.csv')]
+    with open(output_file, 'w', encoding='utf-8') as f:
+        first_file = True
+        for csv_file in csv_files:
+            df = pd.read_csv(os.path.join(folder_path, csv_file))
+            if first_file:
+                df.to_csv(f, index=False, header=True)
+                first_file = False
+            else:
+                df.to_csv(f, index=False, header=False, mode='a')
+    return 

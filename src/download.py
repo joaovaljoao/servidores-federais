@@ -41,7 +41,7 @@ def extract_zip_file(zip_file, folder):
 
 def remove_files(folder, extension):
     for file in os.listdir(folder):
-        if not file.endswith(extension):
+        if not (file.endswith(extension) or file.endswith('_ufob.csv')):
             os.remove(os.path.join(folder, file))
 
 def download_servidores(ano, mes, folder, tipo='Servidores_SIAPE', extract=True):
