@@ -23,15 +23,11 @@ def upload_to_s3(folder, filename, bucket_name):
     print(f'Successfully uploaded {filename} to {bucket_name}.')
     # os.remove(file_path)
 
-def read_s3_file(bucket_name, file_name):
-    # Connect to S3
-    s3 = boto3.client('s3')
-    
-    # Get the object from the bucket
-    obj = s3.get_object(Bucket=bucket_name, Key=file_name)
-    
-    # Read the contents of the file
-    file_content = obj['Body'].read().decode('utf-8')
-    
-    # Return the contents of the file
+def read_s3_file(bucket_name, file_key):
+    s3 = resource('s3')
+    obj = s3.Object(bucket_name, file_key)
+    try:
+        file_content = obj['Body'].read().decode('utf-8')
+    except:
+        file_content = obj['Body'].read().decode('ISO-8859-1')
     return file_content
