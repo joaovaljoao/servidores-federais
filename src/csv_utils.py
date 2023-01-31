@@ -4,13 +4,10 @@ import gc
 
 
 def filter_csv(file):
-    chunk_size = 10**6 # adjust chunk size to balance memory usage and processing time
-    df_filtered = pd.DataFrame()
-    dtype = {'COD_ORG_LOTACAO': 'int32', 'COD_ORG_EXERCICIO': 'int32', 'COD_UORG_LOTACAO': 'int64'}
-    for chunk in pd.read_csv(file, chunksize=chunk_size, encoding='latin-1', low_memory=False, sep=';', dtype=dtype):
-        df_filtered = pd.concat([df_filtered, chunk[(chunk['COD_ORG_LOTACAO'] == 26447) | (chunk['COD_ORG_EXERCICIO'] == 26447) | (chunk['COD_UORG_LOTACAO'] == 26232000000732)]])
+    df = pd.read_csv(file, encoding='latin-1', low_memory=False, sep=';')
+    df = df.query("COD_ORG_LOTACAO == 26447 or COD_ORG_EXERCICIO == 26447 or COD_UORG_LOTACAO == 26232000000732")
     new_file = file.replace('.csv', '_ufob.csv')
-    df_filtered.to_csv(new_file, index=False)
+    df.to_csv(new_file, index=False)
     os.remove(file)
     return new_file.split('/')[-1]
 
