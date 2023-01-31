@@ -27,7 +27,7 @@ def filter_csv(file, chunk_size=1000):
     with open(new_file, 'w', newline='') as f:
         writer = csv.writer(f, delimiter=';')
         writer.writerows(filtered_data)
-    
+        os.remove(file)
     return new_file.split('/')[-1]
 
 
