@@ -2,6 +2,7 @@ from s3 import upload_to_s3, read_s3_bucket
 from csv_utils import filter_file, read_and_clean_data
 from rds_utils import create_table_in_rds
 from download import download_servidores
+import os
 
 def main():
     bucket_name = 'servidores-ufob'    

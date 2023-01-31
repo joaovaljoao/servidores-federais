@@ -1,23 +1,16 @@
 import os
 import pandas as pd
 
+import subprocess
 
-
-def filter_csv(file):
-    chunk_size = 10**6
-    new_file = file.replace('.csv', '_ufob.csv')
-    header = True
-
-    for chunk in pd.read_csv(file, encoding='latin-1', sep=';', chunksize=chunk_size):
-        filtered = chunk[
-            (chunk['COD_ORG_LOTACAO'] == 26447) | 
-            (chunk['COD_ORG_EXERCICIO'] == 26447) | 
-            (chunk['COD_UORG_LOTACAO'] == 26232000000732)
-        ]
-        filtered.to_csv(new_file, mode='a', index=False, header=header)
-        header = False
-
-
+def filter_csv(filename):
+    new_file = filename.replace(".csv", "_ufob.csv")
+    
+    header_command = f"head -1 {filename} > {new_file}"
+    filter_command = f"grep -a -E '26447|26232000000732' {filename} >> {new_file}"
+    
+    subprocess.run(header_command, shell=True, check=True)
+    subprocess.run(filter_command, shell=True, check=True)
 
 def filter_file(folder, file):
     filter_csv(os.path.join(folder, file))
@@ -26,8 +19,6 @@ def filter_file(folder, file):
     os.remove(os.path.join(folder, file))
     print(f'File {file} deleted successfully!')
     return filtered_file
-
-
 
 def read_and_clean_data(dataframe):
     df = dataframe
