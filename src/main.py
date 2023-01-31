@@ -9,8 +9,8 @@ def main():
     bucket_name = 'servidores-ufob'    
     folder = 'output/'
 
-    for ano in range(2022, 2023):
-        for mes in range(11, 13):
+    for ano in range(2013, 2023):
+        for mes in range(1, 13):
             # download the file
             download_servidores(ano, mes, folder)
             file = f'{ano}{mes:02d}_Cadastro.csv'
@@ -22,9 +22,9 @@ def main():
     concatenate_csv_files(folder, 'servidores_ufob.csv')
         # drop duplicates
     df = pd.read_csv('servidores_ufob.csv')
-
+    print('csv importado')
     df.drop_duplicates(subset=['Id_SERVIDOR_PORTAL'], inplace=True)
-
+    print('duplicatas removidas')
     create_table_in_rds(df)
 
 

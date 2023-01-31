@@ -58,7 +58,9 @@ def concatenate_csv_files(folder_path, output_file):
                 df = pd.read_csv(os.path.join(folder_path, csv_file), encoding='latin1', sep=';')
                 if first_file:
                     df.to_csv(f, index=False, header=True, encoding='latin1', sep=';')
+                    print(f'File {csv_file} written to {output_file}')
                     first_file = False
                 else:
                     df.to_csv(f, index=False, header=False, mode='a', encoding='latin1', sep=';' )
+                    print(f'File {csv_file} appended to {output_file}')
     return 
