@@ -3,3 +3,5 @@ output/
 data.ipynb
 .env
 servidores_ufob.csv
+2013*
+src/__pycache__/
