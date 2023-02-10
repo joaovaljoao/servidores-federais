@@ -6,3 +6,6 @@ servidores_ufob.csv
 2013*
 src/__pycache__ 
 src/_*
+stage/
+teste.ipynb
+src/__pycache__/
