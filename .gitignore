@@ -1,5 +1,6 @@
 .venv/
 output/
+data/
 data.ipynb
 .env
 servidores_ufob.csv
