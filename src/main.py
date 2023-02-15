@@ -9,17 +9,17 @@ import pandas as pd
 def main():
     bucket_name = 'servidores-federais-ufob'
 
-    # for year in range(2013, 2014):
-        # for month in range(1, 2):
-        #     download_servidores(year, month)
+    for year in range(2016, 2017):
+        for month in range(12, 13):
+            download_servidores(year, month)
     
 
-    # for file in os.listdir('data/raw'):
-        # filter_csv('data/raw/', file)
+    for file in os.listdir('data/raw'):
+        filter_csv('data/raw/', file)
 
-    # for file in os.listdir('data/filtered'):
-        # if file.endswith('.csv'):
-        #     s3_aws.upload_file_to_s3('data/filtered/' + file, bucket_name, file
+    for file in os.listdir('data/filtered'):
+        if file.endswith('.csv'):
+            s3_aws.upload_file_to_s3('data/filtered/' + file, bucket_name, file)
 
     # create an empty DataFrame to hold all of the data
     concat_df = pd.DataFrame()
@@ -50,9 +50,10 @@ def main():
         concat_df = pd.concat([concat_df, df], ignore_index=True)
         df_cargos = tf.select_cargos_columns(tf.filter_by_tipo_vinculo(concat_df, 2))
         df_funcao = tf.select_funcao_columns(tf.filter_by_tipo_vinculo(concat_df, 1))
+
         unique_ids = tf.select_servidores_columns(concat_df)
         
-    concat_df.to_csv('concatenated.csv', index=False)
+
     postgres.create_table(unique_ids, 'servidores')
     postgres.create_table(df_cargos, 'cargos')
     postgres.create_table(df_funcao, 'funcao')

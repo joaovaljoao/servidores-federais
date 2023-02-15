@@ -15,13 +15,11 @@ def filter_csv(folder, file, chunk_size=1000, suffix='_ufob.csv', cod_orgao='264
         header = next(reader)
         filtered_data.append(header)
         chunk = []
-        unique_ids = set()
+
         for i, row in enumerate(reader):
-            if row[17] == cod_orgao or row[23] == cod_orgao or row[15] == cod_uorg:
-                id_servidor_portal = row[0]
-                if id_servidor_portal not in unique_ids:
+            if row[17] == cod_orgao or str(row[23]) == '26447' or row[15] == cod_uorg:
+
                     chunk.append(row)
-                    unique_ids.add(id_servidor_portal)
             if (i + 1) % chunk_size == 0:
                 filtered_data.extend(chunk)
                 chunk = []
