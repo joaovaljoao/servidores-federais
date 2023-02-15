@@ -17,8 +17,7 @@ def filter_csv(folder, file, chunk_size=1000, suffix='_ufob.csv', cod_orgao='264
         chunk = []
 
         for i, row in enumerate(reader):
-            if row[17] == cod_orgao or str(row[23]) == '26447' or row[15] == cod_uorg:
-
+            if row[17] == cod_orgao or str(row[23]) == cod_orgao or row[15] == cod_uorg:
                     chunk.append(row)
             if (i + 1) % chunk_size == 0:
                 filtered_data.extend(chunk)
