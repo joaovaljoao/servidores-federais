@@ -35,13 +35,9 @@ def filter_csv(folder, file, chunk_size=1000, suffix='_ufob.csv', cod_orgao='264
         os.remove(folder + file)
     return new_file.split('/')[-1]
 
-def read_and_clean_data(df):
-    df = df[['Id_SERVIDOR_PORTAL', 'NOME', 'CPF', 'MATRICULA']]
-    df.drop_duplicates(subset=['Id_SERVIDOR_PORTAL'], inplace=True)
-
-    return df
-
 def concatenate_csv_files(folder_path, output_file):
+    ano = output_file[:4]
+    mes = output_file[5:7]
     create_folder(folder_path)
     csv_files = [f for f in os.listdir(folder_path) if f.endswith('.csv')]
     with open(output_file, 'w', encoding='latin1') as f:
@@ -49,6 +45,9 @@ def concatenate_csv_files(folder_path, output_file):
         for csv_file in csv_files:
             if csv_file.endswith('_ufob.csv'):
                 df = pd.read_csv(os.path.join(folder_path, csv_file), encoding='latin1', sep=';')
+                # cretae a new column with the year and month
+                df['ano'] = ano
+                df['mes'] = mes
                 if first_file:
                     df.to_csv(f, index=False, header=True, encoding='latin1', sep=';')
                     print(f'File {csv_file} written to {output_file}')

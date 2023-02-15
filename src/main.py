@@ -1,7 +1,8 @@
 from download import download_servidores
 import s3_aws
 import os
-from clean import filter_csv, read_and_clean_data, concatenate_csv_files
+import transforms as tf
+from clean import filter_csv
 import postgres
 import pandas as pd
 
@@ -9,19 +10,19 @@ def main():
     bucket_name = 'servidores-federais-ufob'
 
     # for year in range(2013, 2014):
-    #     for month in range(1, 2):
-    #         download_servidores(year, month)
+        # for month in range(1, 2):
+        #     download_servidores(year, month)
     
 
     # for file in os.listdir('data/raw'):
-    #     filter_csv('data/raw/', file)
+        # filter_csv('data/raw/', file)
 
     # for file in os.listdir('data/filtered'):
-    #     if file.endswith('.csv'):
-    #         s3_aws.upload_file_to_s3('data/filtered/' + file, bucket_name, file
+        # if file.endswith('.csv'):
+        #     s3_aws.upload_file_to_s3('data/filtered/' + file, bucket_name, file
 
     # create an empty DataFrame to hold all of the data
-    all_data = pd.DataFrame()
+    concat_df = pd.DataFrame()
 
     # iterate over each file in the S3 bucket
     import boto3
@@ -37,16 +38,24 @@ def main():
         data = s3_object["Body"].read().decode('utf-8')
 
         # create a pandas DataFrame from the CSV data
+        ano = file["Key"][:4]
+        mes = file["Key"][4:6]
+
         df = pd.read_csv(StringIO(data), sep=";")
+        df['ano'] = ano
+        df['mes'] = mes
+
 
         # add the DataFrame to the all_data DataFrame
-        all_data = pd.concat([all_data, df], ignore_index=True)
-        all_data.drop_duplicates(subset=['Id_SERVIDOR_PORTAL'], inplace=True)
-        df = read_and_clean_data(all_data)
-    df.to_csv('concatenated.csv', index=False)
-    postgres.create_table(df, 'servidores')
-
-
+        concat_df = pd.concat([concat_df, df], ignore_index=True)
+        df_cargos = tf.select_cargos_columns(tf.filter_by_tipo_vinculo(concat_df, 2))
+        df_funcao = tf.select_funcao_columns(tf.filter_by_tipo_vinculo(concat_df, 1))
+        unique_ids = tf.select_servidores_columns(concat_df)
+        
+    concat_df.to_csv('concatenated.csv', index=False)
+    postgres.create_table(unique_ids, 'servidores')
+    postgres.create_table(df_cargos, 'cargos')
+    postgres.create_table(df_funcao, 'funcao')
 
 
 if __name__ == '__main__':
