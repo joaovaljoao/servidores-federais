@@ -2,41 +2,64 @@ import zipfile
 import requests
 import os
 import logging
+import time
 
-def create_output_folder(folder_path):
+def create_folder(folder_path):
     if not os.path.exists(folder_path):
         os.makedirs(folder_path)
-        print(f"Pasta criada: {folder_path}")
+        print(f"Folder created: {folder_path}")
 
+def retry(tries, delay=1, backoff=2):
+    """
+    Decorator that retries a function or method until it returns True or the maximum number of attempts is reached.
+    :param tries: the maximum number of times to try (not including the first attempt).
+    :param delay: the number of seconds to wait before trying again.
+    :param backoff: the factor by which to increase the delay after each failure.
+    """
+    def deco_retry(func):
+        def f_retry(*args, **kwargs):
+            mtries, mdelay = tries, delay
+            while mtries > 0:
+                try:
+                    return func(*args, **kwargs)
+                except requests.exceptions.HTTPError as errh:
+                    logging.error("HTTP error: %s", errh)
+                except requests.exceptions.ConnectionError as errc:
+                    logging.error("Connection error: %s", errc)
+                except requests.exceptions.Timeout as errt:
+                    logging.error("Timeout error: %s", errt)
+                except requests.exceptions.RequestException as err:
+                    logging.error("Something went wrong: %s", err)
+                mtries -= 1
+                time.sleep(mdelay)
+                mdelay *= backoff
+            return False
+        return f_retry
+    return deco_retry
+
+@retry(tries=3)
 def download_file(url, filename):
     try:
         r = requests.get(url)
         r.raise_for_status()
         with open(filename, 'wb') as f:
             f.write(r.content)
-        logging.info("Download baixado com sucesso!")
+        logging.info("Download successful!")
         return True
-    except requests.exceptions.HTTPError as errh:
-        logging.error("Erro HTTP: %s", errh)
+    except Exception as e:
+        logging.error("Error downloading file: %s", e)
         return False
-    except requests.exceptions.ConnectionError as errc:
-        logging.error("Erro de conexão: %s", errc)
-        return False
-    except requests.exceptions.Timeout as errt:
-        logging.error("Erro de timeout: %s", errt)
-        return False
-    except requests.exceptions.RequestException as err:
-        logging.error("Algo deu errado: %s", err)
-        return False
+
 
 def extract_zip_file(zip_file, folder):
     try:
         with zipfile.ZipFile(zip_file, 'r') as zip_ref:
             zip_ref.extractall(folder)
-        logging.info("Arquivo extraído com sucesso!")
+            os.remove(zip_file)
+        logging.info("File extracted successfully!")
         return True
     except zipfile.BadZipFile as e:
-        logging.error("Erro: Arquivo zip corrompido ou inválido!")
+        logging.error("Error: Corrupt or invalid zip file!")
         return False
 
 def remove_files(folder, extension):
@@ -44,11 +67,16 @@ def remove_files(folder, extension):
         if not (file.endswith(extension) or file.endswith('_ufob.csv')):
             os.remove(os.path.join(folder, file))
 
-def download_servidores(ano, mes, folder, tipo='Servidores_SIAPE', extract=True):
-    url = 'https://portaldatransparencia.gov.br/download-de-dados/servidores/{ano}{mes:02d}_{tipo}'.format(ano=ano, mes=mes, tipo=tipo)
-    filename = f'{ano}{mes:02d}_{tipo}.zip'
-    create_output_folder(folder)
-    if download_file(url, folder + filename):
+def download_servidores(year, month, extract=True):
+    folder = f"data/zipped/"
+    create_folder(folder)
+    url = f"https://portaldatransparencia.gov.br/download-de-dados/servidores/{year}{month:02d}_Servidores_SIAPE"
+    filename = f"{year}{month:02d}_Servidores_SIAPE.zip"
+    filepath = folder + filename
+    if download_file(url, filepath):
         if extract:
-            extract_zip_file(folder + filename, folder)
-            remove_files(folder, '_Cadastro.csv')
+            extract_folder = f"data/raw/"
+            create_folder(extract_folder)
+            extract_zip_file(filepath, extract_folder)
+            remove_files(extract_folder, '_Cadastro.csv')
+

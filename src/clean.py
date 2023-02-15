@@ -3,17 +3,21 @@ import pandas as pd
 import gc
 import csv
 
+def create_folder(folder_path):
+    if not os.path.exists(folder_path):
+        os.makedirs(folder_path)
+        print(f"Folder created: {folder_path}")
 
-def filter_csv(file, chunk_size=1000):
+def filter_csv(folder, file, chunk_size=1000, suffix='_ufob.csv', cod_orgao='26447', cod_uorg='26232000000732'):
     filtered_data = []
-    with open(file, 'r', encoding='latin1') as f:
+    with open(folder + file, 'r', encoding='latin1') as f:
         reader = csv.reader(f, delimiter=';')
         header = next(reader)
         filtered_data.append(header)
         chunk = []
         unique_ids = set()
         for i, row in enumerate(reader):
-            if row[17] == '26447' or row[23] == '26447' or row[15] == '26232000000732':
+            if row[17] == cod_orgao or row[23] == cod_orgao or row[15] == cod_uorg:
                 id_servidor_portal = row[0]
                 if id_servidor_portal not in unique_ids:
                     chunk.append(row)
@@ -22,24 +26,23 @@ def filter_csv(file, chunk_size=1000):
                 filtered_data.extend(chunk)
                 chunk = []
         filtered_data.extend(chunk)
-    
-    new_file = file.replace('.csv', '_ufob.csv')
+    filtred_folder = 'data/filtered'
+    create_folder(filtred_folder)
+    new_file = os.path.join(filtred_folder,  file.replace('.csv', suffix))
     with open(new_file, 'w', newline='') as f:
         writer = csv.writer(f, delimiter=';')
         writer.writerows(filtered_data)
-        os.remove(file)
+        os.remove(folder + file)
     return new_file.split('/')[-1]
 
-def read_and_clean_data(filepath):
-    df = pd.read_csv(filepath, encoding='latin-1', sep=';')
+def read_and_clean_data(df):
     df = df[['Id_SERVIDOR_PORTAL', 'NOME', 'CPF', 'MATRICULA']]
-    df['CNPQ_ID'] = None
-    df['CNPQ_WEB_ID'] = None
     df.drop_duplicates(subset=['Id_SERVIDOR_PORTAL'], inplace=True)
-    df.to_csv(filepath, index=False)
-    return
+
+    return df
 
 def concatenate_csv_files(folder_path, output_file):
+    create_folder(folder_path)
     csv_files = [f for f in os.listdir(folder_path) if f.endswith('.csv')]
     with open(output_file, 'w', encoding='latin1') as f:
         first_file = True

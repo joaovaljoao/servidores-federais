@@ -1,12 +1,37 @@
+# Ignore virtual environment
 .venv/
-output/
-data/
-data.ipynb
 .env
-servidores_ufob.csv
-2013*
-src/__pycache__ 
-src/_*
-stage/
-teste.ipynb
-src/__pycache__/
+
+# Ignore any compiled Python files
+*.pyc
+
+# Ignore log files
+*.log
+
+# Ignore temporary files
+*.tmp
+
+# Ignore any cache directories
+__pycache__/
+
+# Ignore any local data files
+data/
+
+# Ignore any compiled binary files
+*.pyd
+*.exe
+*.dll
+*.so
+*.dylib
+*.bak
+
+# Ignore any project configuration files
+*.cfg
+*.conf
+*.ini
+
+# Ignore database files
+*.db
+
+# Ignore macOS folder attributes
+.DS_Store
