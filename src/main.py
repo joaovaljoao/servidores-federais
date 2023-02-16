@@ -5,32 +5,29 @@ import transforms as tf
 from clean import filter_csv
 import postgres
 import pandas as pd
+import boto3
+from io import StringIO
+
+
 
 def main():
     bucket_name = 'servidores-federais-ufob'
+    s3 = boto3.client('s3')
+    response = s3.list_objects_v2(Bucket=bucket_name)
+    files_in_bucket = [file["Key"] for file in response["Contents"]]
+    for year in range(2013, 2023):
+        for month in range(1, 13):
+            filename = f'{year}{month:02}_Cadastro_ufob.csv'
+            if filename in files_in_bucket:
+                print(f'File {filename} already exists in S3')
+            else:
+                download_servidores(year, month)
+                filter_csv('data/raw/', filename)
+                s3_aws.upload_file_to_s3('data/filtered/' + filename, bucket_name, filename)
 
-    for year in range(2016, 2017):
-        for month in range(12, 13):
-            download_servidores(year, month)
-    
-
-    for file in os.listdir('data/raw'):
-        filter_csv('data/raw/', file)
-
-    for file in os.listdir('data/filtered'):
-        if file.endswith('.csv'):
-            s3_aws.upload_file_to_s3('data/filtered/' + file, bucket_name, file)
 
     # create an empty DataFrame to hold all of the data
     concat_df = pd.DataFrame()
-
-    # iterate over each file in the S3 bucket
-    import boto3
-    from io import StringIO
-
-    s3 = boto3.client('s3')
-
-    response = s3.list_objects_v2(Bucket=bucket_name)
 
     for file in response["Contents"]:
         # read the file from S3
