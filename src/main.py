@@ -11,19 +11,27 @@ from io import StringIO
 
 
 def main():
-    bucket_name = 'servidores-federais-ufob'
+    bucket_name = 'servidores-unb'
+    universidade = 'unb'
     s3 = boto3.client('s3')
     response = s3.list_objects_v2(Bucket=bucket_name)
-    files_in_bucket = [file["Key"] for file in response["Contents"]]
-    for year in range(2013, 2023):
-        for month in range(1, 13):
-            filename = f'{year}{month:02}_Cadastro_ufob.csv'
+
+    if "Contents" not in response:
+        print('Bucket está vazio')
+        files_in_bucket = []
+    else:
+        files_in_bucket = [file["Key"] for file in response["Contents"]]
+    
+    for year in range(2022, 2023):
+        for month in range(11, 13):
+            filename = f'{year}{month:02}_Cadastro.csv'
+            filtered_filename = f'{year}{month:02}_Cadastro_{universidade}.csv'
             if filename in files_in_bucket:
                 print(f'File {filename} already exists in S3')
             else:
-                download_servidores(year, month)
-                filter_csv('data/raw/', filename)
-                s3_aws.upload_file_to_s3('data/filtered/' + filename, bucket_name, filename)
+                download_servidores(universidade, year, month)
+                filter_csv('data/raw/', filename, universidade = 'unb', cod_orgao='26271', cod_uorg='26271000000605')
+                s3_aws.upload_file_to_s3('data/filtered/' + filtered_filename, bucket_name, filtered_filename)
 
 
     # create an empty DataFrame to hold all of the data
@@ -51,9 +59,9 @@ def main():
         unique_ids = tf.select_servidores_columns(concat_df)
         
 
-    postgres.create_table(unique_ids, 'servidores')
-    postgres.create_table(df_cargos, 'cargos')
-    postgres.create_table(df_funcao, 'funcao')
+    postgres.create_table(unique_ids, 'servidores_unb')
+    postgres.create_table(df_cargos, 'cargos_unb')
+    postgres.create_table(df_funcao, 'funcao_unb')
 
 
 if __name__ == '__main__':

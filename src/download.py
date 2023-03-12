@@ -62,12 +62,12 @@ def extract_zip_file(zip_file, folder):
         logging.error("Error: Corrupt or invalid zip file!")
         return False
 
-def remove_files(folder, extension):
+def remove_files(folder, extension, universidade):
     for file in os.listdir(folder):
-        if not (file.endswith(extension) or file.endswith('_ufob.csv')):
+        if not (file.endswith(extension) or file.endswith(f'_{universidade}.csv')):
             os.remove(os.path.join(folder, file))
 
-def download_servidores(year, month, extract=True):
+def download_servidores(universidade, year, month, extract=True):
     folder = f"data/zipped/"
     create_folder(folder)
     url = f"https://portaldatransparencia.gov.br/download-de-dados/servidores/{year}{month:02d}_Servidores_SIAPE"
@@ -78,5 +78,5 @@ def download_servidores(year, month, extract=True):
             extract_folder = f"data/raw/"
             create_folder(extract_folder)
             extract_zip_file(filepath, extract_folder)
-            remove_files(extract_folder, '_Cadastro.csv')
+            remove_files(extract_folder, '_Cadastro.csv', universidade)
 
